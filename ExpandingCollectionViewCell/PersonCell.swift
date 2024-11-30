@@ -13,7 +13,7 @@ class PersonCell: UICollectionViewCell {
     // MARK: - Public Properties
     
     var person: Person? { didSet { updateContent() } }
-    override var isSelected: Bool { didSet { updateAppearance() } }
+    var isExpanded: Bool = false { didSet { updateAppearance() } }
     
     // MARK: - Private Properties
     
@@ -25,7 +25,14 @@ class PersonCell: UICollectionViewCell {
     }()
     private let ageLabel = UILabel()
     private let favoriteColorLabel = UILabel()
-    private let favoriteMovieLabel = UILabel()
+    
+    private let favoriteMovieLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 0
+        label.textColor = .green
+        label.isUserInteractionEnabled = true // 启用用户交互
+        return label
+    }()
     
     private let disclosureIndicator: UIImageView = {
         let disclosureIndicator = UIImageView()
@@ -85,11 +92,22 @@ class PersonCell: UICollectionViewCell {
         contentView.translatesAutoresizingMaskIntoConstraints = false
         rootStack.translatesAutoresizingMaskIntoConstraints = false
         
+        // 添加点击手势到 favoriteMovieLabel
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleFavoriteMovieTap))
+        favoriteMovieLabel.addGestureRecognizer(tapGesture)
+        
         setUpConstraints()
         updateAppearance()
     }
     
+    @objc private func handleFavoriteMovieTap() {
+        guard let person = person else { return }
+        print("Tapped favorite movie: \(person.favoriteMovie)")
+    }
+    
     private func setUpConstraints() {
+        disclosureIndicator.widthAnchor.constraint(equalToConstant: 20).isActive = true
+
         NSLayoutConstraint.activate([
             contentView.topAnchor.constraint(equalTo: topAnchor),
             contentView.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -112,22 +130,20 @@ class PersonCell: UICollectionViewCell {
     }
 
     private func updateContent() {
-        guard let person = person else { return }
-        nameLabel.text = person.name
-        ageLabel.text = "Age: \(person.age)"
-        favoriteColorLabel.text = "Favorite color: \(person.favoriteColor)"
-        favoriteMovieLabel.text = "Favorite movie: \(person.favoriteMovie)"
-    }
-    
-    /// Updates the views to reflect changes in selection
+            guard let person = person else { return }
+            nameLabel.text = person.name
+            ageLabel.text = "Age: \(person.age)"
+            favoriteColorLabel.text = "Favorite color: \(person.favoriteColor)"
+            favoriteMovieLabel.text = "Favorite movie: \(person.favoriteMovie)"
+        }
+
     private func updateAppearance() {
-        closedConstraint?.isActive = !isSelected
-        openConstraint?.isActive = isSelected
-        
-        UIView.animate(withDuration: 0.3) { // 0.3 seconds matches collection view animation
-            // Set the rotation just under 180º so that it rotates back the same way
+        closedConstraint?.isActive = !isExpanded
+        openConstraint?.isActive = isExpanded
+
+        UIView.animate(withDuration: 0.3) {
             let upsideDown = CGAffineTransform(rotationAngle: .pi * 0.999 )
-            self.disclosureIndicator.transform = self.isSelected ? upsideDown :.identity
+            self.disclosureIndicator.transform = self.isExpanded ? upsideDown :.identity
         }
     }
 }

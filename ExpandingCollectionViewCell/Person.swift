@@ -16,7 +16,7 @@ struct Person {
     let id = UUID()
 }
 
-// Person must be hashable in order to be used as the item identifier in a diffable data source
+// Person 必须是可哈希的，以便用作 Diffable Data Source 的唯一标识符
 extension Person: Hashable {
     static func == (lhs: Person, rhs: Person) -> Bool {
         lhs.id == rhs.id
